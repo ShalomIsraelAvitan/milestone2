@@ -14,6 +14,10 @@ public class Photo {
     private String classification;
     private Long idOfUser;
 
+    public Photo()
+    {
+        
+    }
     public Photo(String name, String description, byte[] contend) {
         this.name = name;
         this.description = description;

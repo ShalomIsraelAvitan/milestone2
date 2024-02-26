@@ -50,7 +50,7 @@ public class HomePage extends VerticalLayout{
          welcomeMsg = "Welcome " + userName.toUpperCase();
 
       // create image for chat page   
-      Image imgChat = new Image(CHAT_IMAGE_URL, "chat image");
+      Image imgChat = new Image(CHAT_IMAGE_URL, "Home image");
       imgChat.setHeight("250px");
 
 

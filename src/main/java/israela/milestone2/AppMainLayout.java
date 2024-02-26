@@ -26,13 +26,15 @@ public class AppMainLayout extends AppLayout
 
         RouterLink linkHome = new RouterLink("Home", HomePage.class);
         RouterLink linkUpload = new RouterLink("Upload", UploadPhotoPage.class);
+        RouterLink linkGallery = new RouterLink("Gallery", PhotoGalleryPage.class);
+
         Span last = new Span("");
         //Button btnLogin = new Button("Login", e->login());
         Button btnLogout = new Button("Logout", e->logout());
         btnLogout.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR); // RED button
 
         HorizontalLayout header  = new HorizontalLayout();
-        header.add(logo,linkHome,linkUpload,last,btnLogout);
+        header.add(logo,linkHome,linkUpload,linkGallery,last,btnLogout);
         header.getStyle();
         header.setWidthFull();
         header.setAlignItems(Alignment.BASELINE);

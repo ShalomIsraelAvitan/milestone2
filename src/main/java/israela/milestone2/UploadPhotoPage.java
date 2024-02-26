@@ -1,12 +1,19 @@
 package israela.milestone2;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import javax.imageio.ImageIO;
+
+import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
@@ -16,17 +23,19 @@ import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 
 
-@Route(value = "/Upload", layout = AppMainLayout.class)
+@Route(value = "/upload", layout = AppMainLayout.class)
 public class UploadPhotoPage extends VerticalLayout{
     private PhotoServise photoService;
     private Upload singleFileUpload; //UI component (file upload)
     private Photo uploadPhoto;
-
+    
     public  UploadPhotoPage(PhotoServise photoService) {
         this.photoService = photoService;
         if (!isUserAuthorized())
@@ -37,21 +46,41 @@ public class UploadPhotoPage extends VerticalLayout{
             return;
         }
         creatPhotoUpload();
-         
+        //initUploaderImage();
+        /*  
         try{
+        System.err.println("staet showPhotoGallery2=====>\n");
         showPhotoGallery2();}
         catch(Exception e){
             System.out.println("Error========>showPhotoGallery\n");
-        }
+        }*/
 
-        
-        add(new H1("Photo Gallery"));
+        System.out.println("UploadPhotoPage=======>>\n");;
+        add(new H1("Photo Upload"));
         add(singleFileUpload);
-        add(new Button("OK", event -> sendToNN()));
+        add(new Button("Send to CNN", event -> sendToNN()));
+        add(new Button("Remove Photo", event -> remove((String)VaadinSession.getCurrent().getSession().getAttribute("userId"))));
 
         setSizeFull();
         setAlignItems(Alignment.CENTER);
 
+    }
+
+    private void remove(String attribute) {
+
+        Long id = Long.parseLong(attribute);
+        try {
+             boolean b = photoService.removPhotoOfUserId(id);
+             System.out.println("b = "+b);
+             if(b==true){
+                Notification.show("remove Succeeded",5000, Position.TOP_CENTER);
+             }
+            
+        } catch (Exception e) {
+            Notification.show("Remove Failed",5000, Position.TOP_CENTER);
+        }
+        
+        
     }
 
     private void sendToNN() {
@@ -81,17 +110,30 @@ public class UploadPhotoPage extends VerticalLayout{
             System.out.println("File name: "+event.getFileName());
             System.out.println("File size: "+event.getContentLength());
             System.out.println("File type: "+event.getMIMEType());
-
-           
-
+            System.out.println("");
+        
             try {
                 byte[] photoFileContend =  memoryBuffer.getInputStream().readAllBytes();
-                Photo uploadPhoto = new Photo(event.getFileName(), "stam tmuna...", photoFileContend);
+                //showPhotoOnPage(photoFileContend, uploadPhoto);
+                uploadPhoto = new Photo(event.getFileName(), "stam tmuna...", photoFileContend);
                 Long idUser = Long.parseLong((String)VaadinSession.getCurrent().getSession().getAttribute("userId"));
                 photoService.addPhoto(uploadPhoto, idUser);
+
                 Notification.show("Photo Upload to DB Succeeded!", 5000, Position.TOP_CENTER);
-                
+               
+                //showPhotoOnPage(photoFileContend, uploadPhoto);
+                try{
+                ArrayList<Photo> list = photoService.getPhotoById(idUser);
+                System.out.println("***********************************\n");
+                System.out.println(list.size());
+                System.out.println("*****************************\n");
+                showPhotoOnPage(list.get(list.size()-1).getContend(), uploadPhoto);
+                }
+                catch (Exception e){
+                    System.out.println("error of photoService====>>\n");
+                }
             } catch (Exception e) {
+
                 
                 System.out.println("ERROR=======>>creatPhotoUpload\n");
             }
@@ -100,6 +142,22 @@ public class UploadPhotoPage extends VerticalLayout{
         });
     }
     
+    private void showPhotoOnPage(byte[] photoFileContend, Photo uploadPhoto) {
+
+        StreamResource resource = new StreamResource("stam.jpg", new InputStreamFactory() 
+        {
+            public java.io.InputStream createInputStream() 
+            {
+                return new ByteArrayInputStream(photoFileContend);
+            };
+        });
+       
+        Image image = new Image(resource, uploadPhoto.getName());
+        image.setHeight("200px");
+        image.setWidth("200px");
+        add(image);
+  
+    }
 
     private boolean isUserAuthorized()
     {
@@ -130,7 +188,7 @@ public class UploadPhotoPage extends VerticalLayout{
         Long idUser = Long.parseLong((String) VaadinSession.getCurrent().getSession().getAttribute("userId"));
     
         ArrayList<Photo> photoArr = photoService.getPhotoById(idUser);
-    
+        System.err.println("size = "+ photoArr.size()+"\n");
         for (int i = 0; i < photoArr.size(); i++) {
             if(photoArr.isEmpty())
             {
@@ -144,6 +202,41 @@ public class UploadPhotoPage extends VerticalLayout{
             add(image);
         }
     }
+    /* 
+    private void initUploaderImage() {
+    MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
+    singleFileUpload = new Upload(buffer);
+    singleFileUpload.setAcceptedFileTypes("image/jpeg","image/jpg", "image/png", "image/gif");
+
+    singleFileUpload.addSucceededListener(event -> {
+        String attachmentName = event.getFileName();
+        try {
+            // The image can be jpg png or gif, but we store it always as png file in this example
+            BufferedImage inputImage = ImageIO.read(buffer.getInputStream(attachmentName));
+            ByteArrayOutputStream pngContent = new ByteArrayOutputStream();
+            ImageIO.write(inputImage, "png", pngContent);
+            //saveProfilePicture(pngContent.toByteArray());
+            Image img =  showImage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    });
+    add(singleFileUpload);
+}*/
+
+/* 
+    private Image showImage() {
+        System.err.println("showImage=====>>\n");
+        Long id =Long.parseLong(UI.getCurrent().getId().get());
+        Image image = photoService.getImg(id);
+        Image image2 = new Image(image.getSrc(), "img");
+        System.err.println(image.getText());
+        image.setHeight("100%");
+        HasComponents imageContainer;
+        // imageContainer.removeAll();
+        // imageContainer.add(image);
+        return image2;
+    }*/
 
 
 }

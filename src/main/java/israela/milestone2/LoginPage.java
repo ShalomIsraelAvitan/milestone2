@@ -109,18 +109,20 @@ public class LoginPage extends VerticalLayout
         String userName = fieldName.getValue();
         
         int password = Integer.parseInt(pw.getValue());
-        boolean exsits = userService.isUserExists(userName,idUser, password);
-        if(exsits == true)
+        boolean exsits = userService.isUserExistsLogin(userName,idUser, password);
+        System.err.println(exsits);
+        if(exsits)
         {
-            VaadinSession.getCurrent().getSession().setAttribute("username", name);
-            VaadinSession.getCurrent().getSession().setAttribute("userId", id);
+            VaadinSession.getCurrent().getSession().setAttribute("username", name.getValue());
+            VaadinSession.getCurrent().getSession().setAttribute("userId", id.getValue());
             Notification.show("User Log In successfully",5000,Position.TOP_CENTER);
-            UI.getCurrent().navigate("/Upload");
+            //UI.getCurrent().navigate("/upload");
+            UI.getCurrent().getPage().setLocation("/upload");
             return true;
 
         }
         else{
-            Notification.show("the User is not exsits", 5000, Position.TOP_CENTER);
+            Notification.show("the User is not exsits or one of the fields is incorrect", 5000, Position.TOP_CENTER);
             return false;
         }
         

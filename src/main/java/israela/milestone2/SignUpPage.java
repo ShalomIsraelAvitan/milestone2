@@ -118,7 +118,7 @@ public class SignUpPage extends VerticalLayout{
             {
                 Notification.show("User successfully Sign Up",5000,Position.TOP_CENTER);
 
-                UI.getCurrent().navigate("/Upload");
+                UI.getCurrent().navigate("/upload");
             }
             else{
                 Notification.show("User failed to Sign Up",5000,Position.TOP_CENTER);

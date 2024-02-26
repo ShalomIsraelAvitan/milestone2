@@ -70,4 +70,19 @@ public class UserServise {
         return false;
     }
 
+
+    public boolean isUserExistsLogin(String userName, Long idUser, int password) {
+        User user = userRepo.findByName(userName);
+        if(user!=null)
+        {
+            if(user.getName().equals(userName))
+            {
+                if(user.getPw()==password)
+                return true;
+            }
+        }
+        return false;
+
+    }
+
 }

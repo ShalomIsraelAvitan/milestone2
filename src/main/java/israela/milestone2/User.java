@@ -20,7 +20,7 @@ public class User {
         this.isAdmin = false;
     }
 
-    public double getId() {
+    public Long getId() {
         return id;
     }
 
