@@ -1,14 +1,29 @@
 package israela.milestone2;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
+
+import com.vaadin.flow.data.provider.DataProvider;
 
 @Service
 public class UserServise {
     
     private UserRepository userRepo;
+    private ArrayList<UserGridChangeListener> listeners;
+    private ArrayList<User> usersList;
+
+    // create chat change listener using "Observer" Desing Pattern.
+   public interface UserGridChangeListener
+   {
+      public void onChange();
+   }
 
     public UserServise(UserRepository userRepo) {
         this.userRepo = userRepo;
+        listeners = new ArrayList<UserGridChangeListener>();
+        usersList = new ArrayList<>();
     }
 
     
@@ -20,8 +35,8 @@ public class UserServise {
     public boolean addUser(User newUser)
     {
         try {
-            
-            if(newUser.getId()==111111111)
+            Long id = Long.parseLong("111111111");
+            if(newUser.getId().equals(id))
             {
                 newUser.setAdmin(true);
             }
@@ -29,6 +44,7 @@ public class UserServise {
                 newUser.setAdmin(false);
             }
             userRepo.insert(newUser);
+            usersList.add(newUser);
             return true;
             
         } catch (Exception e) {
@@ -48,6 +64,8 @@ public class UserServise {
             return false;
         }
     }
+
+
     public boolean isUserExists(String name, Long id, int pw)
     {
         User user = userRepo.findUserById(id);
@@ -83,6 +101,22 @@ public class UserServise {
         }
         return false;
 
+    }
+
+
+    public List<User> getAllUser() {
+        List<User> arrayListUser = userRepo.findAll();
+        
+        return arrayListUser;
+    }
+
+    public ArrayList<User> DrawingPoints() {
+        synchronized(listeners) {
+            for (UserGridChangeListener listener : listeners) {
+                listener.onChange();
+            }
+            return usersList;
+        }
     }
 
 }

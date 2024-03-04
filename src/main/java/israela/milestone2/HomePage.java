@@ -20,7 +20,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 
-@Route(value = "/",layout = AppMainLayout.class)
+@Route(value = "/home",layout = AppMainLayout.class)
 @PageTitle("Home")
 public class HomePage extends VerticalLayout{
 
@@ -34,6 +34,13 @@ public class HomePage extends VerticalLayout{
     private static final String CHAT_IMAGE_URL = "https://www.smorescience.com/wp-content/uploads/2023/08/Featured-Images-50.jpg";
     public  HomePage(PhotoServise photoService) {
     setAlignItems(Alignment.CENTER);
+    if (!isUserAuthorized())
+        {
+            System.out.println("-------- User NOT Authorized - can't use! --------");
+            //Notification.show("You need to login or register first",5000,Position.TOP_CENTER);
+            UI.getCurrent().getPage().setLocation("/"); // Redirect to login page (HomePage).
+            return;
+        }
 
     add(new H2("Home Page"));
 
@@ -50,43 +57,41 @@ public class HomePage extends VerticalLayout{
          welcomeMsg = "Welcome " + userName.toUpperCase();
 
       // create image for chat page   
-      Image imgChat = new Image(CHAT_IMAGE_URL, "Home image");
-      imgChat.setHeight("250px");
+      Image imgLogo = new Image(CHAT_IMAGE_URL, "Home image");
+      imgLogo.setHeight("250px");
 
 
       HorizontalLayout helloPanel = new HorizontalLayout();
       helloPanel.setAlignItems(Alignment.BASELINE);
       //TextField fieldName = new TextField("Your Name");
+      String str = "On this website, you can upload photos of your paintings and check whether the painting is a realism or abstract painting";
+      String str2 = "In order to upload your drawings, you will have to click on the upload button located in the navigation bar on the top left.";
 
-      Button btnSignUp = new Button("sign up", event -> signUp());
-      Button btnLogin = new Button("Log in", event -> logIn());
+      
+      // Button btnSignUp = new Button("sign up", event -> signUp());
+      // Button btnLogin = new Button("Log in", event -> logIn());
       //helloPanel.add(fieldName, btnSayHello);
 
-      helloPanel.add(btnLogin,btnSignUp);
-
+      //helloPanel.add(btnLogin,btnSignUp);
+      helloPanel.add(new H3(str));
+      
       add(new Text(new Date() + ""));
-      add(imgChat);
+      //add(imgLogo);
       add(new H1(welcomeMsg));
-      add(new H3("( SessionID: " + sessionId + " )"));
+      //add(new H3("( SessionID: " + sessionId + " )"));
       add( helloPanel);
+      add(new H3(str2));
 
       // set all components in the Center of page
       setSizeFull();
       setAlignItems(Alignment.CENTER);
    }
+   private boolean isUserAuthorized()
+    {
+        // try to get 'username' from session cookie (was created in the Welcome(login) page).
+        String userName = (String)VaadinSession.getCurrent().getSession().getAttribute("username");
 
-   private void logIn() {
-    UI.getCurrent().navigate("/login");
+        return (userName == null) ? false : true;
     }
-
-private void signUp() {
-        UI.getCurrent().navigate("/signup");
-    }
-
-private void sayHello(String name)
-   {
-      add(new Checkbox("Hello, " + name + ".  (" + new Date() + ")"));
-      Notification.show("Thank you " + name, 5000, Position.TOP_CENTER);
-   }
    
 }

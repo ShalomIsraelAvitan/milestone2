@@ -4,15 +4,20 @@ import java.util.Arrays;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.vaadin.flow.component.template.Id;
+
 @Document(collection = "photos")
 public class Photo {
     
+    private String id;
     private String name;
     private String description;
     private LocalDateTime dateTime;
     private byte[] contend; //photo file contend (pixels data)
     private String classification;
     private Long idOfUser;
+
+    public String getID() { return this.id;}
 
     public Photo()
     {
@@ -58,9 +63,18 @@ public class Photo {
         this.contend = contend;
     }
 
-    public void setClassification(String classification)
+    public boolean setClassification(String classification)
     {
-        this.classification = classification;
+        System.out.println("Enter to setClassification==>>>");
+        try {
+            this.classification = classification;
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            System.out.println("ERROR setClassification==>>");
+            return false;
+        }
+       
     }
 
     public String getClassification()

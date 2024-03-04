@@ -44,7 +44,7 @@ public class User {
         this.pw = pw;
     }
 
-    public boolean isAdmin() {
+    public boolean getAdmin() {
         return isAdmin;
     }
 

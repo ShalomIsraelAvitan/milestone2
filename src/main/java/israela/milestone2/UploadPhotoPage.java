@@ -1,40 +1,47 @@
 package israela.milestone2;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 
+//import py4j.GatewayServer;
+//from py4j.java_gateway import JavaGateway;
 
 @Route(value = "/upload", layout = AppMainLayout.class)
 public class UploadPhotoPage extends VerticalLayout{
     private PhotoServise photoService;
     private Upload singleFileUpload; //UI component (file upload)
     private Photo uploadPhoto;
+    private String photoID;
+
+    private String strOfOutpotPhyton;
+    private byte[] photoFileContend; 
+    
+
     
     public  UploadPhotoPage(PhotoServise photoService) {
         this.photoService = photoService;
@@ -46,20 +53,12 @@ public class UploadPhotoPage extends VerticalLayout{
             return;
         }
         creatPhotoUpload();
-        //initUploaderImage();
-        /*  
-        try{
-        System.err.println("staet showPhotoGallery2=====>\n");
-        showPhotoGallery2();}
-        catch(Exception e){
-            System.out.println("Error========>showPhotoGallery\n");
-        }*/
+       
 
         System.out.println("UploadPhotoPage=======>>\n");;
         add(new H1("Photo Upload"));
         add(singleFileUpload);
-        add(new Button("Send to CNN", event -> sendToNN()));
-        add(new Button("Remove Photo", event -> remove((String)VaadinSession.getCurrent().getSession().getAttribute("userId"))));
+        
 
         setSizeFull();
         setAlignItems(Alignment.CENTER);
@@ -70,23 +69,165 @@ public class UploadPhotoPage extends VerticalLayout{
 
         Long id = Long.parseLong(attribute);
         try {
-             boolean b = photoService.removPhotoOfUserId(id);
+            
+             boolean b = photoService.removPhotoById(this.photoID);
              System.out.println("b = "+b);
              if(b==true){
-                Notification.show("remove Succeeded",5000, Position.TOP_CENTER);
+                Notification.show("remove Succeeded",5000, Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                this.photoID = null;
              }
             
         } catch (Exception e) {
-            Notification.show("Remove Failed",5000, Position.TOP_CENTER);
+            Notification.show("Remove Failed",5000, Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
         
         
     }
 
-    private void sendToNN() {
+    private void sendToCNN(){
+        if(this.photoID==null)
+        {
+            Notification.show("You must upload a photo before sending for evaluation",10000,Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_WARNING);
+            return;
+        }
+
+        String strPredictions;
+        Photo photo = photoService.getPhotoById(this.photoID);
+        System.out.println("sendToNN==>>"+photo.getName());
+        byte[] photoFileContend =  photo.getContend();
+        System.out.println("========================>>"+photoFileContend.toString());
+
+        StreamResource resource = new StreamResource("stam.jpg", new InputStreamFactory() 
+        {
+            public java.io.InputStream createInputStream() 
+            {
+                return new ByteArrayInputStream(photoFileContend);
+            };
+        });
+       
+        Image image = new Image(resource, photo.getName());
+        try {
+            OutputStream out = new FileOutputStream("C:\\Users\\user\\Desktop\\savePhoto\\"+photoID+".jpg");
+            out.write(photoFileContend);
+            out.flush();
+            out.close();
+            System.out.println("YESSSSSSSSSSSSS");
+        } catch (Exception e) {
+            System.out.println("OutputStream =====>>"+e.toString());
+        }
+
+        String pathPython = "C:\\Users\\user\\Documents\\VSProj\\milestone2\\src\\main\\java\\israela\\milestone2\\CNN.py";
+        //String pathImage = "C:\\Users\\user\\Desktop\\savePhoto\\"+photoID+".png";
+        String pathImage = "C:\\Users\\user\\Desktop\\savePhoto\\"+photoID+".jpg";
+        //String pathImage ="C:\\Users\\user\\Desktop\\savePhoto\\00c5774bc9883453a565f949e4b1e19b.jpg";
+
+        String [] cmd = new String[3];
+        cmd[0] = "python";
+        cmd[1] = pathPython;
+        cmd[2] = pathImage;
+
+        
+        strPredictions ="";
+        Runtime r = Runtime.getRuntime();
+        System.out.println("Runtime==>>");
+        try {
+            Process p = r.exec(cmd);
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while((strOfOutpotPhyton=in.readLine()) != null){
+                //Notification.show(strOfOutpotPhyton,10000,Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                System.out.println("java = "+strOfOutpotPhyton);
+                strPredictions = strOfOutpotPhyton;
+            }
+        } catch (Exception e) {
+            System.out.println("sendToNN ERROR  Process p = r.exec(cmd);===>>"+e.toString());
+        }
+
+        Notification.show(strPredictions, 5000, Position.BOTTOM_START);
+
+        try {
+            double p = Double.parseDouble((String)strPredictions.toString());
+            System.out.println("double = "+p);
+            if(p>50)
+            {
+                //Notification.show("Realism", 5000, Position.BOTTOM_START);
+                strPredictions = "Realism";
+            }
+            else{
+                //Notification.show("Abstract", 5000, Position.BOTTOM_START);
+                strPredictions = "Abstract";
+            }
+
+            add(new H2("The model classified your image into a category: "+strPredictions));
+            if(p>50)
+            {
+                add(new H2("with an accuracy of: "+p));
+            }
+            else{
+                double p2 = 100-p;
+                add(new H2("with an accuracy of: "+p2));
+            }
+
+            boolean b =photoService.setClassification(photo, strPredictions);
+                if(b==true){
+                    System.out.println("secsses");
+                    remove(this.photoID);
+                    photoService.addPhoto(photo, photo.getIdOfUser());
+                }
+                else
+                    System.out.println("not work");
+            
+          
+           
+
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            System.out.println("Cnut convert");
+            System.out.println(strPredictions);
+            }
+        // Long longPredictions = Long.parseLong(strOfOutpotPhyton);
+        // if(longPredictions >0.5)
+        // {
+        //     Notification.show("Predicted class is Rializem",10000,Position.TOP_CENTER);
+           
+        // }
+        // else{
+        //     Notification.show("Predicted class is Abstract",10000,Position.TOP_CENTER);
+        // }
         
     }
+    
+    private static void saveAsPNG(BufferedImage image, String savePath) {
+        System.out.println(savePath);
+        try {
+            // Save the BufferedImage as a PNG file
+            String format = "png";
+            ImageIO.write(image, format, new File(savePath));
+        } catch (IOException e) {
+            System.out.println("saveAsPNG ERORR==>>"+e.toString());
+            e.printStackTrace();
+        }
+    }
 
+    
+    private static BufferedImage toBufferedImage(Image image) {
+        try {
+                // Create a BufferedImage with the same dimensions as the Image
+            BufferedImage bufferedImage = new BufferedImage(
+                Integer.parseInt(image.getWidth()),
+                Integer.parseInt(image.getHeight()),
+
+                BufferedImage.TYPE_INT_RGB
+                
+        );
+        
+        return bufferedImage;
+            
+        } catch (Exception e) {
+            System.out.println("toBufferedImage ERROR==>>"+e.toString()+"\n");
+            return null;
+        }
+        
+    }
 
     private void creatPhotoUpload() {
         /* Example for MemoryBuffer */
@@ -113,21 +254,28 @@ public class UploadPhotoPage extends VerticalLayout{
             System.out.println("");
         
             try {
-                byte[] photoFileContend =  memoryBuffer.getInputStream().readAllBytes();
+                photoFileContend =  memoryBuffer.getInputStream().readAllBytes();
+
+                
                 //showPhotoOnPage(photoFileContend, uploadPhoto);
                 uploadPhoto = new Photo(event.getFileName(), "stam tmuna...", photoFileContend);
                 Long idUser = Long.parseLong((String)VaadinSession.getCurrent().getSession().getAttribute("userId"));
-                photoService.addPhoto(uploadPhoto, idUser);
+                this.photoID = photoService.addPhoto(uploadPhoto, idUser);
+                add(new Button("Send to Evaluation", e -> sendToCNN()));
+                add(new Button("Remove Photo", e -> remove((String)VaadinSession.getCurrent().getSession().getAttribute("userId"))));
 
-                Notification.show("Photo Upload to DB Succeeded!", 5000, Position.TOP_CENTER);
+                //Notification.show("Photo Upload to DB Succeeded!", 5000, Position.TOP_CENTER);
                
                 //showPhotoOnPage(photoFileContend, uploadPhoto);
                 try{
-                ArrayList<Photo> list = photoService.getPhotoById(idUser);
-                System.out.println("***********************************\n");
-                System.out.println(list.size());
+                ArrayList<Photo> list = photoService.getPhotoByUserId(idUser);
+                System.out.println("*****************************");
+                System.out.println("Size of photoUser = "+list.size());
                 System.out.println("*****************************\n");
                 showPhotoOnPage(list.get(list.size()-1).getContend(), uploadPhoto);
+                
+
+                
                 }
                 catch (Exception e){
                     System.out.println("error of photoService====>>\n");
@@ -136,10 +284,14 @@ public class UploadPhotoPage extends VerticalLayout{
 
                 
                 System.out.println("ERROR=======>>creatPhotoUpload\n");
+                this.photoID = null;
             }
+
+            
            
             
         });
+        
     }
     
     private void showPhotoOnPage(byte[] photoFileContend, Photo uploadPhoto) {
@@ -166,63 +318,6 @@ public class UploadPhotoPage extends VerticalLayout{
 
         return (userName == null) ? false : true;
     }
-
-    private void showPhotoGallery() throws IOException {
-        //TO_DO: get all photos frome DB
-        ArrayList<Photo> photoList = new ArrayList<>();
-        Long id =Long.parseLong(UI.getCurrent().getId().get());
-        photoList = photoService.getPhotoById(id);
-
-        for(int i = 0; i<photoList.size(); i++)
-        {
-            File file = new File("photo");
-            Files.copy(new ByteArrayInputStream(photoList.get(i).getContend()),file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            Image image = new Image("photo","image");
-            add(image);
-        }
-
-
-    }
-
-    private void showPhotoGallery2() {
-        Long idUser = Long.parseLong((String) VaadinSession.getCurrent().getSession().getAttribute("userId"));
-    
-        ArrayList<Photo> photoArr = photoService.getPhotoById(idUser);
-        System.err.println("size = "+ photoArr.size()+"\n");
-        for (int i = 0; i < photoArr.size(); i++) {
-            if(photoArr.isEmpty())
-            {
-                System.err.println("the photoArr=========>>\n");
-                break;
-            }
-            byte[] imageData = photoArr.get(i).getContend();
-            System.out.println("Length of imageData: " + imageData.length);
-            StreamResource resource = new StreamResource("image.jpg", () -> new ByteArrayInputStream(imageData));
-            Image image = new Image(resource, "Alt Text");
-            add(image);
-        }
-    }
-    /* 
-    private void initUploaderImage() {
-    MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
-    singleFileUpload = new Upload(buffer);
-    singleFileUpload.setAcceptedFileTypes("image/jpeg","image/jpg", "image/png", "image/gif");
-
-    singleFileUpload.addSucceededListener(event -> {
-        String attachmentName = event.getFileName();
-        try {
-            // The image can be jpg png or gif, but we store it always as png file in this example
-            BufferedImage inputImage = ImageIO.read(buffer.getInputStream(attachmentName));
-            ByteArrayOutputStream pngContent = new ByteArrayOutputStream();
-            ImageIO.write(inputImage, "png", pngContent);
-            //saveProfilePicture(pngContent.toByteArray());
-            Image img =  showImage();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    });
-    add(singleFileUpload);
-}*/
 
 /* 
     private Image showImage() {

@@ -1,7 +1,13 @@
 package israela.milestone2;
 
-import java.awt.List;
+
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+
+import org.bson.types.ObjectId;
+import org.python.antlr.base.boolop;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,20 +20,27 @@ public class PhotoServise {
     }
 
 
-    public void addPhoto(Photo photo, Long idUser)
+    public String addPhoto(Photo photo, Long idUser)
     {
         photo.setIdOfUser(idUser);
         try {
-            photoRepo.insert(photo);
-            
+            Photo p = photoRepo.insert(photo);
+            return p.getID();
         } catch (Exception e) {
             
             System.err.println("Error==========>>addPhoto\n");
+            return null;
         }
         
     }
 
-    public ArrayList<Photo> getPhotoById(Long idOfUser)
+    public Photo getPhotoById(String photoID)
+    {
+        Optional<Photo> photo = photoRepo.findById(new ObjectId(photoID));
+        return photo.get();
+    }
+
+    public ArrayList<Photo> getPhotoByUserId(Long idOfUser)
     {
 
         ArrayList<Photo> photoList = new ArrayList<>();
@@ -46,8 +59,8 @@ public class PhotoServise {
            
             
             
-            System.out.println("size= "+photoList.size());
-            System.out.println("Yes===>>getPhotoById");
+            //System.out.println("size= "+photoList.size());
+            //System.out.println("Yes===>>getPhotoById");
         
             return photoList;
         } catch (Exception e) {
@@ -65,6 +78,13 @@ public class PhotoServise {
 
        boolean b =  photoRepo.deleteByIdOfUser(id);
         return b;
+    }
+
+
+    public ArrayList<Photo> getAllPhoto() {
+        List<Photo> arrayPhotos = photoRepo.findAll();
+
+        return (ArrayList<Photo>) arrayPhotos;
     }
 
     /*public Image generateImage(User user) {
@@ -86,5 +106,40 @@ public class PhotoServise {
         System.err.println("size = "+arrayImg.size()+"\n");
         return arrayImg.get(0);
     }*/
+
+    public boolean removPhotoById(String photoID)
+    {
+        Optional<Photo> photo = photoRepo.findById(new ObjectId(photoID));
+
+        try {
+            photoRepo.delete(photo.get());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    public boolean setClassification(Photo photo, String strPredictions) {
+
+        System.out.println("Enter to servise setClassification==>>\n");
+        
+        try {
+            boolean res = photo.setClassification(strPredictions);
+            if (res==true) {
+                photoRepo.save(photo);
+            System.out.println("YESSS in setClassification======>>");
+            }
+            else{
+                System.out.println("משהו לא עובד במחלקה");
+            }
+            
+            return true;
+        } catch (Exception e) {
+            System.out.println("ERORR in setClassification====>>"+e.toString());
+            return false;
+        }
+        
+    }
 
 }

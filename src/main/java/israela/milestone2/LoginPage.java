@@ -6,6 +6,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -82,7 +83,6 @@ public class LoginPage extends VerticalLayout
         fieldId.setValueChangeMode(ValueChangeMode.LAZY); // eed for ChangeListener.
 
         return fieldId;
-
         
     }
 
@@ -110,14 +110,14 @@ public class LoginPage extends VerticalLayout
         
         int password = Integer.parseInt(pw.getValue());
         boolean exsits = userService.isUserExistsLogin(userName,idUser, password);
-        System.err.println(exsits);
+        System.err.println("login="+exsits);
         if(exsits)
         {
             VaadinSession.getCurrent().getSession().setAttribute("username", name.getValue());
             VaadinSession.getCurrent().getSession().setAttribute("userId", id.getValue());
-            Notification.show("User Log In successfully",5000,Position.TOP_CENTER);
+            Notification.show("User Log In successfully",5000,Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);;
             //UI.getCurrent().navigate("/upload");
-            UI.getCurrent().getPage().setLocation("/upload");
+            UI.getCurrent().getPage().setLocation("/home");
             return true;
 
         }

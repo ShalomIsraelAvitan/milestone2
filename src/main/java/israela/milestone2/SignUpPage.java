@@ -4,15 +4,18 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 
 @Route(value = "/signup")
+@PageTitle("signup")
 public class SignUpPage extends VerticalLayout{
      private LoginForm loginForm;
     private UserServise userService;
@@ -116,9 +119,9 @@ public class SignUpPage extends VerticalLayout{
             VaadinSession.getCurrent().getSession().setAttribute("userId", id.getValue());
             if(x==true )
             {
-                Notification.show("User successfully Sign Up",5000,Position.TOP_CENTER);
+                Notification.show("User successfully Sign Up",5000,Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-                UI.getCurrent().navigate("/upload");
+                UI.getCurrent().navigate("/home");
             }
             else{
                 Notification.show("User failed to Sign Up",5000,Position.TOP_CENTER);
