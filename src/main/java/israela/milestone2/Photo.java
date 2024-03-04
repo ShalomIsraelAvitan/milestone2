@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.vaadin.flow.component.template.Id;
 
 @Document(collection = "photos")
 public class Photo {

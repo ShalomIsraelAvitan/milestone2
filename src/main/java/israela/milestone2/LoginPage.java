@@ -1,10 +1,9 @@
 package israela.milestone2;
-import org.apache.commons.compress.archivers.dump.DumpArchiveEntry.PERMISSION;
+
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.notification.Notification.Position;
@@ -20,7 +19,7 @@ import com.vaadin.flow.server.VaadinSession;
 @PageTitle("Login")
 public class LoginPage extends VerticalLayout
 {
-    private LoginForm loginForm;
+    
     private UserServise userService;
     private TextField fieldName;
     private TextField fieldId;

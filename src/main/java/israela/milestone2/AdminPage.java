@@ -30,6 +30,7 @@ public class AdminPage extends VerticalLayout{
     private PhotoServise photoServise;
     private String userName;
     private UserServise userServise;
+    private VerticalLayout v;
 
     private User userChos;
     public AdminPage(PhotoServise photoServise, UserServise userServise)
@@ -47,6 +48,7 @@ public class AdminPage extends VerticalLayout{
             UI.getCurrent().getPage().setLocation("/"); // Redirect to login page (HomePage).
             return;
         }
+        v = new VerticalLayout();
         Long id = Long.parseLong((String)VaadinSession.getCurrent().getSession().getAttribute("userId"));
         if(id != 111111111)
         {
@@ -91,7 +93,7 @@ public class AdminPage extends VerticalLayout{
         showAllUsers();
         add(bottonPanel);
         mainLayout.add(gridUser);
-        mainLayout.setAlignItems(Alignment.BASELINE);//מצמיד אותם לבסיס
+        //mainLayout.setAlignItems(Alignment.BASELINE);//מצמיד אותם לבסיס
         add(mainLayout);
         //showAllPhotoUser();
 
@@ -167,6 +169,9 @@ public class AdminPage extends VerticalLayout{
     }
 
     private void showAllPhotoUser(User user) {
+       
+        
+        v.removeAll();
          if(user.getName().equals(null))
          {
             Notification.show("mast choose User",5000,Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_WARNING);
@@ -176,9 +181,13 @@ public class AdminPage extends VerticalLayout{
 
         if(list.size()==0)
         {
-            add(new H2("There are no images to display"));
+            H2 h = new H2("There are no images to display");
+            v.add(h);
+            v.setAlignItems(Alignment.CENTER);
+            add(v);
             return; 
         }
+       
         for(int i =0; i<list.size(); i++)
         {
             showPhotoOnPage(list.get(i).getContend(), list.get(i));
@@ -197,7 +206,7 @@ public class AdminPage extends VerticalLayout{
                 return new ByteArrayInputStream(photoFileContend);
             };
         });
-
+        
         HorizontalLayout heder = new HorizontalLayout();
         HorizontalLayout heder2 = new HorizontalLayout();
          Image image = new Image(resource, photo.getName());
@@ -209,14 +218,20 @@ public class AdminPage extends VerticalLayout{
          
          heder.add(new H4(str));
          heder.add(str2);
-         add(heder);
+         //add(heder);
+         v.add(heder);
          
          str = "Classification: ";
          str2 = photo.getClassification()+"\n";
          heder2.add(new H4(str));
          heder2.add(str2);
-         add(heder2);
-         add(image);
+         //add(heder2);
+         //add(image);
+         v.add(heder2);
+         v.add(image);
+         
+         v.setAlignItems(Alignment.CENTER);
+         add(v);
          
   
     }

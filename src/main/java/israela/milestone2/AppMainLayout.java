@@ -1,6 +1,5 @@
 package israela.milestone2;
 
-import javax.swing.ImageIcon;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -43,7 +42,7 @@ public class AppMainLayout extends AppLayout
         btnLogout.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR); // RED button
 
         HorizontalLayout header  = new HorizontalLayout();
-        String idUser = (String)VaadinSession.getCurrent().getSession().getAttribute("username");
+        //String idUser = (String)VaadinSession.getCurrent().getSession().getAttribute("username");
         // if(idUser.equals("shalom"))
         // {
         //     try {
@@ -66,12 +65,6 @@ public class AppMainLayout extends AppLayout
         header.setPadding(true);//רווחים מסביב לכפתור
         header.expand(last);
         addToNavbar(header);
-        
-    }
-    private void login()
-    {
-        //Notification.show("login",1000,Position.BOTTOM_START);
-        UI.getCurrent().navigate(LoginPage.class);//צד הלקוח יקפוץ לדף לוגאין
         
     }
     private void logout()
